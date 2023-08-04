@@ -1,30 +1,25 @@
 import { useSelector } from "react-redux";
-import { selectAllPosts } from "./postsSlice";
-import PostAuthor from "./PostAuthor";
-import TimeAgo from "./TimeAgo";
-import ReactionButton from "./ReactionButton";
+import { selectPostIds, getPostsStatus, getPostsError } from "./postsSlice";
+import PostsExcerpt from "./PostsExcerpt";
 
 const PostsList = () => {
-    const posts = useSelector(selectAllPosts)
 
-    const orderedPosts = posts.slice().sort((a, b) => b.date.localeCompare(a.date))
+    const orderedPostIds = useSelector(selectPostIds)
+    const postStatus = useSelector(getPostsStatus);
+    const error = useSelector(getPostsError);
 
-    const renderedPosts = orderedPosts.map(post => (
-        <article key={post.id}>
-            <h3>{post.title}</h3>
-            <p>{post.content.substring(0, 100)}</p>
-            <p className="postCredit">
-                <PostAuthor userId={post.userId} />
-                <TimeAgo timestamp={post.date} />
-            </p>
-            <ReactionButton post={post} />
-        </article>
-    ))
+    let content;
+    if (postStatus === 'loading') {
+        content = <p>"Loading..."</p>;
+    } else if (postStatus === 'succeeded') {
+        content = orderedPostIds.map(postId => <PostsExcerpt key={postId} postId={postId} />)
+    } else if (postStatus === 'failed') {
+        content = <p>{error}</p>;
+    }
 
     return (
         <section>
-            <h2>Posts</h2>
-            {renderedPosts}
+            {content}
         </section>
     )
 }
